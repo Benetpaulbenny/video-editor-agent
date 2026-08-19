@@ -3,4 +3,4 @@ to run this clone
 
 install uv 
 
--> uv run chumma
+-> uv run porotta
