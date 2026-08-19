@@ -6,6 +6,7 @@ from pathlib import Path
 import gradio as gr
 
 from .csv_manager import CsvManager
+from .chippi import Chippi
 
 
 class VideoManager:
@@ -50,6 +51,7 @@ class PorottaApp:
     def __init__(self) -> None:
         self.video_manager = VideoManager()
         self.csv_manager = CsvManager()
+        self.chippi = Chippi(self.csv_manager)
 
     def build(self) -> gr.Blocks:
         with gr.Blocks(title="Porotta Video Editor") as interface:
@@ -65,15 +67,16 @@ class PorottaApp:
                 next_button = gr.Button("Next", variant="primary")
             with gr.Column(visible=False) as next_page:
                 gr.Markdown("# Video Data")
-                csv_path = gr.Textbox(label="CSV save path", interactive=False)
-                table = gr.Dataframe(headers=self.csv_manager.columns, datatype=["number"] * 12, interactive=False)
+                status = gr.Textbox(label="Analysis status", interactive=False)
+                csv_tables = gr.HTML()
             videos.change(self.video_manager.save_videos, inputs=videos, outputs=[result, thumbnails])
-            next_button.click(self._open_next_page, outputs=[home_page, next_page, table, csv_path])
+            next_button.click(self._open_next_page, inputs=videos, outputs=[home_page, next_page, status, csv_tables])
         return interface
 
-    def _open_next_page(self) -> tuple:
-        data = self.csv_manager.load_or_create()
-        return gr.update(visible=False), gr.update(visible=True), data, str(self.csv_manager.path)
+    def _open_next_page(self, videos: list[str] | None):
+        yield gr.update(visible=False), gr.update(visible=True), "Preparing CSV files", self.csv_manager.render(videos)
+        for status, tables in self.chippi.run(videos):
+            yield gr.update(visible=False), gr.update(visible=True), status, tables
 
     def launch(self) -> None:
         self.build().launch()
