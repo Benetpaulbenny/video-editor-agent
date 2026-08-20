@@ -25,7 +25,7 @@ class Chippi:
             for serial_number, sample in enumerate(self.frame_number.execute(Path(video)), start=1):
                 quality = self.image_quality.execute(sample.frame_path)
                 color = self.color_analysis.execute(sample.frame_path)
-                faces = self.face_detection.execute(sample.frame_path, video, serial_number)
+                faces = self.face_detection.execute(sample.frame_path)
                 frame_data = [serial_number, sample.frame_number, sample.timestamp]
                 row = [
                     json.dumps(frame_data, separators=(",", ":")),

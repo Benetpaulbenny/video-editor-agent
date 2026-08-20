@@ -10,7 +10,7 @@ class CsvManager:
             "Frame_number[S.No, Frame number, Timestamp]",
             "Image_quality[Brightness, Contrast, Blur score, Noise]",
             "Color_analysis[Color temp[kelvin, classification], Dominant colors[r, g, b, percentage], Avg RGB[r, g, b], Saturation[mean, median, low_saturation_ratio, high_saturation_ratio]]",
-            "Face detection[face_id, bbox[x1, y1, x2, y2], confidence, embedding, embedding_path]",
+            "Face detection[face_id, bbox[x1, y1, x2, y2], confidence, embedding[vector]]",
             "Face landmark",
             "Head pose",
             "Pose estimation",

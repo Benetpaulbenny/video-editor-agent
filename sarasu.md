@@ -107,16 +107,10 @@ Example value:
 ### Face detection
 
 ```text
-Face detection[face_id, bbox[x1, y1, x2, y2], confidence, embedding, embedding_path]
+Face detection[face_id, bbox[x1, y1, x2, y2], confidence, embedding[vector]]
 ```
 
-Face detection uses InsightFace with the `buffalo_l` model and its RetinaFace detector. Each detected face records its bounding box and confidence. The ArcFace embedding is saved separately as a `.npy` file under:
-
-```text
-~/Downloads/Pookie/face_embeddings
-```
-
-The CSV stores `stored_separately` and the embedding path instead of placing the vector in every row. This keeps the CSV readable and allows embeddings to be loaded independently for later identity matching.
+Face detection uses InsightFace with the `buffalo_l` model and its RetinaFace detector. Each detected face records its bounding box, confidence, and ArcFace embedding vector directly in the CSV cell.
 
 The remaining feature columns are present for the planned layers and currently contain `0` placeholders.
 
@@ -143,4 +137,4 @@ InsightFace with `buffalo_l` provides RetinaFace detection, bounding boxes, conf
 - Placeholder columns preserve the planned schema while later layers are implemented one at a time.
 - Blur and noise normalization references are provisional and can be calibrated against real footage later.
 - InsightFace was selected instead of Haar Cascade, dlib, YOLO, or DeepFace because RetinaFace plus ArcFace matches the required face detection and identity-representation responsibilities.
-- Embeddings are stored as `.npy` files rather than in CSV cells because vectors are large numerical data and should remain independently loadable.
+- Embeddings are stored directly in the CSV as JSON arrays so each video CSV is self-contained and easy for the agent to read.
