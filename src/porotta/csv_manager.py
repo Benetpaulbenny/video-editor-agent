@@ -9,7 +9,7 @@ class CsvManager:
         self.columns = [
             "Frame_number[S.No, Frame number, Timestamp]",
             "Image_quality[Brightness, Contrast, Blur score, Noise]",
-            "Color_analysis",
+            "Color_analysis[Color temp[kelvin, classification], Dominant colors[r, g, b, percentage], Avg RGB[r, g, b], Saturation[mean, median, low_saturation_ratio, high_saturation_ratio]]",
             "Face detection",
             "Face landmark",
             "Head pose",
