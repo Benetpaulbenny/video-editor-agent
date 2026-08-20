@@ -4,24 +4,24 @@ import subprocess
 from dataclasses import dataclass
 from fractions import Fraction
 from pathlib import Path
+from typing import Iterator
 
 
 @dataclass(frozen=True)
 class FrameSample:
     frame_number: int
+    timestamp: float
     frame_path: Path
 
 
 class FrameNumber:
-    def execute(self, video_path: str | Path) -> list[FrameSample]:
+    def execute(self, video_path: str | Path) -> Iterator[FrameSample]:
         video_path = Path(video_path)
         frame_rate, frame_count = self._get_metadata(video_path)
-        samples = []
         for second in range(math.ceil(frame_count / frame_rate)):
             frame_number = round(second * frame_rate) + 1
             frame_path = self._extract_frame(video_path, second, frame_number)
-            samples.append(FrameSample(frame_number, frame_path))
-        return samples
+            yield FrameSample(frame_number, float(second), frame_path)
 
     def _get_metadata(self, video_path: Path) -> tuple[float, int]:
         result = subprocess.run(

@@ -7,11 +7,12 @@ import gradio as gr
 
 from .csv_manager import CsvManager
 from .chippi import Chippi
+from .storage import StorageManager
 
 
 class VideoManager:
-    def __init__(self, directory: str = "~/Downloads/Pookie/Video") -> None:
-        self.directory = Path(directory).expanduser()
+    def __init__(self, storage: StorageManager) -> None:
+        self.directory = storage.root / "Video"
         self.thumbnail_directory = Path(tempfile.gettempdir()) / "porotta_thumbnails"
 
     def save_videos(self, videos: list[str] | None) -> tuple[str, list[str]]:
@@ -49,7 +50,9 @@ class VideoManager:
 
 class PorottaApp:
     def __init__(self) -> None:
-        self.video_manager = VideoManager()
+        self.storage = StorageManager()
+        self.storage.reset()
+        self.video_manager = VideoManager(self.storage)
         self.csv_manager = CsvManager()
         self.chippi = Chippi(self.csv_manager)
 

@@ -7,8 +7,8 @@ class CsvManager:
     def __init__(self, directory: str = "~/Downloads/Pookie/video_csv") -> None:
         self.directory = Path(directory).expanduser()
         self.columns = [
-            "Frame_number",
-            "Image_quality",
+            "Frame_number[S.No, Frame number, Timestamp]",
+            "Image_quality[Brightness, Contrast, Blur score, Noise]",
             "Color_analysis",
             "Face detection",
             "Face landmark",
@@ -30,7 +30,7 @@ class CsvManager:
     def path_for(self, video_path: str | Path) -> Path:
         return self.directory / f"{Path(video_path).stem}.csv"
 
-    def append_row(self, video_path: str | Path, row: list[int]) -> None:
+    def append_row(self, video_path: str | Path, row: list[object]) -> None:
         path = self.prepare(video_path)
         with path.open("a", newline="") as file:
             csv.writer(file).writerow(row)
