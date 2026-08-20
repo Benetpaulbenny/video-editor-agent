@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "gradio>=6.24.0",
+    "insightface>=1.0.1",
     "opencv-python-headless>=5.0.0.93",
 ]
 

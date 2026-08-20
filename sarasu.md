@@ -104,6 +104,20 @@ Example value:
 ]
 ```
 
+### Face detection
+
+```text
+Face detection[face_id, bbox[x1, y1, x2, y2], confidence, embedding, embedding_path]
+```
+
+Face detection uses InsightFace with the `buffalo_l` model and its RetinaFace detector. Each detected face records its bounding box and confidence. The ArcFace embedding is saved separately as a `.npy` file under:
+
+```text
+~/Downloads/Pookie/face_embeddings
+```
+
+The CSV stores `stored_separately` and the embedding path instead of placing the vector in every row. This keeps the CSV readable and allows embeddings to be loaded independently for later identity matching.
+
 The remaining feature columns are present for the planned layers and currently contain `0` placeholders.
 
 ## Current layers
@@ -116,6 +130,10 @@ OpenCV calculates brightness, global contrast, Laplacian-based blur score, and e
 
 OpenCV calculates estimated color temperature, dominant colors using K-means, average RGB, and saturation statistics. This layer records visual color characteristics without making editing decisions.
 
+### Layer 3 — Face Detection
+
+InsightFace with `buffalo_l` provides RetinaFace detection, bounding boxes, confidence scores, and ArcFace embeddings. Layer 3 does not repeat Layer 1 image-quality calculations. The model is initialized lazily when the first frame reaches this layer so application startup remains lightweight.
+
 ## Design decisions
 
 - JSON arrays are used inside grouped CSV cells so nested measurements stay together while the CSV remains easy to inspect.
@@ -124,3 +142,5 @@ OpenCV calculates estimated color temperature, dominant colors using K-means, av
 - Realtime updates expose progress immediately and make long video analysis observable.
 - Placeholder columns preserve the planned schema while later layers are implemented one at a time.
 - Blur and noise normalization references are provisional and can be calibrated against real footage later.
+- InsightFace was selected instead of Haar Cascade, dlib, YOLO, or DeepFace because RetinaFace plus ArcFace matches the required face detection and identity-representation responsibilities.
+- Embeddings are stored as `.npy` files rather than in CSV cells because vectors are large numerical data and should remain independently loadable.
