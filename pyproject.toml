@@ -6,6 +6,9 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "gradio>=6.24.0",
+    "ffmpeg-python",
+    "librosa>=1.0.0",
+    "sarvamai>=0.1.28",
 ]
 
 [project.scripts]
