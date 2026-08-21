@@ -79,9 +79,9 @@ Every CSV has 12 top-level columns. Grouped headers describe the order of values
 2. Image_quality[Brightness, Contrast, Blur score, Noise]
 3. Color_analysis[Color temp[kelvin, classification], Dominant colors[r, g, b, percentage], Avg RGB[r, g, b], Saturation[mean, median, low_saturation_ratio, high_saturation_ratio]]
 4. Face detection[face_id, bbox[x1, y1, x2, y2], confidence, embedding[vector]]
-5. Face landmark
-6. Head pose
-7. Pose estimation
+5. Face landmark[face_id, eyes[left, right], nose, jaw, mouth, normalized[eyes[left, right], nose, jaw, mouth], landmark_confidence[detector confidence]]
+6. Head pose[face_id, yaw, pitch, roll, confidence]
+7. Pose estimation[person_id, confidence, keypoints[17x[x, y, confidence]], hands[left[x, y, confidence], right[x, y, confidence]], body_orientation[rotation, direction], movement[moving, direction, speed]]
 8. Object detection
 9. Segmentation
 10. OCR
@@ -191,7 +191,65 @@ If no face is detected, the Face Detection cell is an empty list:
 
 ### Future columns
 
-Face landmark, Head pose, Pose estimation, Object detection, Segmentation, OCR, Scene classification, and Camera analysis are reserved for future layers. Their current row values are `0` placeholders and must not be interpreted as measured results.
+Object detection, Segmentation, OCR, Scene classification, and Camera analysis are reserved for future layers. Their current row values are `0` placeholders and must not be interpreted as measured results.
+
+### Face Landmarks
+
+Tool: InsightFace landmark output from the same face-analysis result used by Face Detection.
+
+Value order for the cell:
+
+```json
+[
+  [face_id, [eyes_left, eyes_right], nose, jaw, mouth, [normalized_eyes, normalized_nose, normalized_jaw, normalized_mouth], landmark_confidence],
+  ...
+]
+```
+
+The implementation uses InsightFace's 68-point landmarks for semantic regions and falls back to five-point keypoints when necessary. The normalized coordinates divide `x` by frame width and `y` by frame height. The landmark confidence is the detector confidence because InsightFace does not expose a separate confidence for each landmark. Layer 4 does not calculate yaw, pitch, roll, or emotion.
+
+### Head Pose
+
+Tool: InsightFace 3D facial landmarks with geometric pose solving.
+
+Value order for the cell:
+
+```json
+[
+  [face_id, yaw, pitch, roll, confidence],
+  ...
+]
+```
+
+Yaw, pitch, and roll are degrees. Negative yaw means looking left; positive yaw means looking right. Negative pitch means looking down; positive pitch means looking up. Negative roll means tilted left; positive roll means tilted right. Confidence combines the InsightFace detector confidence with the solve-projection reprojection error. No separate pose model is used.
+
+### Pose Estimation
+
+Tools: YOLO11 Pose and StrongSORT.
+
+The value order for the cell is:
+
+```json
+[
+  [person_id, confidence, keypoints, hands, body_orientation, movement],
+  ...
+]
+```
+
+`keypoints` always follows this order:
+
+```text
+nose, left_eye, right_eye, left_ear, right_ear,
+left_shoulder, right_shoulder, left_elbow, right_elbow,
+left_wrist, right_wrist, left_hip, right_hip,
+left_knee, right_knee, left_ankle, right_ankle
+```
+
+Every keypoint is `[x, y, confidence]`. `hands` is `[left_wrist, right_wrist]`. `body_orientation` is `[rotation, direction]`, derived from the shoulder and hip centers; its direction is `left`, `right`, `center`, or `unknown`. `movement` is `[moving, direction, speed]`, where direction is `left`, `right`, `up`, `down`, or `stationary`, and speed is pixels per second.
+
+StrongSORT provides the temporal person ID. Movement is calculated between the one-second sampled frames, so it is a coarse movement estimate rather than a full-frame-rate measurement. The first observation of a person is reported as stationary with speed `0.0` because no previous position exists.
+
+The tracker uses a one-observation confirmation threshold so a detected person can be recorded immediately. If no person is detected in a sampled frame, the Pose Estimation cell is `[]`.
 
 ## LLM interpretation rules
 
@@ -200,7 +258,7 @@ Face landmark, Head pose, Pose estimation, Object detection, Segmentation, OCR, 
 - Do not infer missing feature results from placeholder `0` values.
 - Treat Layer 1 and Layer 2 as objective measurements, not editing instructions.
 - Treat face embeddings as numerical similarity representations, not names or personal identities.
-- Treat `face_id` as frame-local unless a future tracking layer defines persistent identity logic.
+- Treat `face_id` as frame-local. Treat `person_id` as persistent only within the current video analysis run because it comes from StrongSORT.
 - Use the timestamp and frame number to locate the original sampled frame.
 - Expect one CSV per video and process rows in order.
 - The latest row may appear while analysis is still running; do not assume the CSV is complete until processing finishes.
@@ -211,3 +269,4 @@ Face landmark, Head pose, Pose estimation, Object detection, Segmentation, OCR, 
 - Structured values are stored as key-free JSON arrays because their field order is documented in the header.
 - Processing is serial so every layer sees the same frame and realtime updates remain ordered.
 - Chippi is the single layer orchestrator so future analysis modules can be added without changing the interface flow.
+- Layer 6 is lazy-loaded so the app can start without loading YOLO11 and StrongSORT models until pose analysis is reached.

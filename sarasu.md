@@ -42,7 +42,7 @@ Process video 1 serially
     ↓
 Extract one frame per second
     ↓
-Run Layer 1 and Layer 2 on the same frame
+Run the implemented layers on the same frame
     ↓
 Write one CSV row and update the UI
     ↓
@@ -114,6 +114,38 @@ Face detection uses InsightFace with the `buffalo_l` model and its RetinaFace de
 
 The remaining feature columns are present for the planned layers and currently contain `0` placeholders.
 
+### Face landmarks
+
+```text
+Face landmark[face_id, eyes[left, right], nose, jaw, mouth, normalized[eyes[left, right], nose, jaw, mouth], landmark_confidence[detector confidence]]
+```
+
+Layer 4 uses InsightFace's 68-point landmark output and groups it into eyes, nose, jaw, and mouth regions. Coordinates are stored in pixels and normalized by frame width and height. If the 68-point output is unavailable, the five-point keypoint output is used for eyes, nose, and mouth, while jaw remains empty. InsightFace does not expose an independent confidence for every landmark, so the detector confidence is preserved as the explicitly defined overall landmark confidence.
+
+### Head pose
+
+```text
+Head pose[face_id, yaw, pitch, roll, confidence]
+```
+
+Layer 5 uses InsightFace's 3D facial landmarks and geometric pose solving. Yaw, pitch, and roll are reported in degrees. Negative yaw means looking left, positive yaw means looking right; negative pitch means looking down, positive pitch means looking up; negative roll means tilted left, positive roll means tilted right. Confidence is the detector confidence reduced by the geometric reprojection error. No separate pose model is used.
+
+### Pose estimation
+
+```text
+Pose estimation[person_id, confidence, keypoints[17x[x, y, confidence]], hands[left[x, y, confidence], right[x, y, confidence]], body_orientation[rotation, direction], movement[moving, direction, speed]]
+```
+
+Layer 6 uses YOLO11 Pose for person detection and the standard 17 body keypoints. StrongSORT assigns person IDs across sampled frames. Each person value is ordered as:
+
+```text
+[person_id, confidence, keypoints, hands, body_orientation, movement]
+```
+
+Keypoints follow the standard YOLO order from nose through ankles. Hands reuse the left and right wrist points. Body orientation is derived from shoulder and hip geometry. Movement is derived from tracked bounding-box centers between the one-second samples, so speed is in pixels per second and is intentionally a coarse sampled estimate.
+
+StrongSORT is configured with a one-observation confirmation threshold so a detected person can appear in the CSV immediately. A frame with no detected person correctly stores an empty list.
+
 ## Current layers
 
 ### Layer 1 — Image Quality
@@ -128,6 +160,18 @@ OpenCV calculates estimated color temperature, dominant colors using K-means, av
 
 InsightFace with `buffalo_l` provides RetinaFace detection, bounding boxes, confidence scores, and ArcFace embeddings. Layer 3 does not repeat Layer 1 image-quality calculations. The model is initialized lazily when the first frame reaches this layer so application startup remains lightweight.
 
+### Layer 4 — Face Landmarks
+
+InsightFace landmark output provides geometric facial points for each detected face. Layer 4 records eyes, nose, jaw, and mouth coordinates in pixels and normalized coordinates. It does not calculate head orientation, emotion, or other interpretation; those belong to later layers.
+
+### Layer 5 — Head Pose
+
+InsightFace's 3D landmark geometry is used with geometric pose solving to calculate yaw, pitch, roll, and confidence. Layer 5 does not calculate emotion, identity, or image quality.
+
+### Layer 6 — Pose Estimation
+
+YOLO11 Pose detects people and supplies body keypoints with coordinates and confidence. StrongSORT maintains person IDs between sampled frames. Body orientation and movement are derived from those outputs. The layer does not infer emotion, identity by name, or editing decisions.
+
 ## Design decisions
 
 - JSON arrays are used inside grouped CSV cells so nested measurements stay together while the CSV remains easy to inspect.
@@ -138,4 +182,9 @@ InsightFace with `buffalo_l` provides RetinaFace detection, bounding boxes, conf
 - Blur and noise normalization references are provisional and can be calibrated against real footage later.
 - InsightFace was selected instead of Haar Cascade, dlib, YOLO, or DeepFace because RetinaFace plus ArcFace matches the required face detection and identity-representation responsibilities.
 - Embeddings are stored directly in the CSV as JSON arrays so each video CSV is self-contained and easy for the agent to read.
+- Layer 4 reuses Layer 3's detected face objects so the same frame is not passed through the InsightFace detector twice.
+- Layer 5 reuses the same InsightFace 3D landmarks from Layer 3 instead of adding a separate pose model.
+- Layer 6 uses YOLO11 Pose for body structure and StrongSORT for temporal identity because a single frame cannot reliably provide movement direction.
+- Layer 6 is evaluated on the existing one-frame-per-second stream so every layer remains serial and receives the same frame.
+- StrongSORT confirms a track after one observation because the output is sampled once per second and delaying confirmation would hide early valid detections.
 - InsightFace and ONNX Runtime startup logs are suppressed so the terminal shows major application output while real errors remain visible.

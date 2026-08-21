@@ -11,11 +11,15 @@ class FaceDetection:
     def __init__(self) -> None:
         self._analyzer = None
 
-    def execute(self, frame_path: str | Path) -> list[list]:
+    def detect(self, frame_path: str | Path) -> tuple[np.ndarray, list]:
         frame = cv2.imread(str(frame_path), cv2.IMREAD_COLOR)
         if frame is None:
             raise ValueError(f"Unable to read frame: {frame_path}")
-        faces = self._get_analyzer().get(frame)
+        return frame, self._get_analyzer().get(frame)
+
+    def execute(self, frame_path: str | Path, faces: list | None = None) -> list[list]:
+        if faces is None:
+            _, faces = self.detect(frame_path)
         return [
             [
                 f"face_{face_number:03d}",

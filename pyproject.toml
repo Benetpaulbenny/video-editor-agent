@@ -5,12 +5,14 @@ description = "ThE EdItOr"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "boxmot>=22.0.0",
     "gradio>=6.24.0",
     "ffmpeg-python",
     "librosa>=1.0.0",
     "sarvamai>=0.1.28",
     "insightface>=1.0.1",
     "opencv-python-headless>=5.0.0.93",
+    "ultralytics>=8.4.125",
 ]
 
 [project.scripts]
