@@ -83,7 +83,7 @@ Every CSV has 12 top-level columns. Grouped headers describe the order of values
 6. Head pose[face_id, yaw, pitch, roll, confidence]
 7. Pose estimation[person_id, confidence, keypoints[17x[x, y, confidence]], hands[left[x, y, confidence], right[x, y, confidence]], body_orientation[rotation, direction], movement[moving, direction, speed]]
 8. Object detection[object_id, class, bbox[x1, y1, x2, y2], bbox_normalized[x1, y1, x2, y2], confidence, size[width, height, area_ratio]]
-9. Segmentation
+9. Segmentation[persons[person_id, mask_RLE[size[h, w], counts]], foreground_mask[mask_RLE[size[h, w], counts]], background_mask[mask_RLE[size[h, w], counts]], sky_mask[mask_RLE[size[h, w], counts]], ground_mask[mask_RLE[size[h, w], counts]]]
 10. OCR
 11. Scene classification
 12. Camera analysis
@@ -191,7 +191,7 @@ If no face is detected, the Face Detection cell is an empty list:
 
 ### Future columns
 
-Segmentation, OCR, Scene classification, and Camera analysis are reserved for future layers. Their current row values are `0` placeholders and must not be interpreted as measured results.
+OCR, Scene classification, and Camera analysis are reserved for future layers. Their current row values are `0` placeholders and must not be interpreted as measured results.
 
 ### Face Landmarks
 
@@ -270,6 +270,32 @@ StrongSORT provides `object_id` across the sampled frames. A frame with no track
 
 The YOLO confidence threshold is `0.20` and the StrongSORT confidence threshold is `0.70`. If StrongSORT does not return a track for a current-frame YOLO detection, the detection is retained with a local fallback ID. Fallback IDs are unique within each frame and are matched to recent same-class boxes when overlap is sufficient.
 
+### Segmentation
+
+Tools: SAM 2 and SegFormer.
+
+The cell stores a JSON object with these fields:
+
+```json
+{
+  "persons": [
+    {
+      "person_id": "person_001",
+      "mask_rle": {"size": [1080, 1920], "counts": "..."},
+      "area_ratio": 0.18
+    }
+  ],
+  "foreground_mask": {"size": [1080, 1920], "counts": "..."},
+  "background_mask": {"size": [1080, 1920], "counts": "..."},
+  "sky_mask": {"size": [1080, 1920], "counts": "..."},
+  "ground_mask": {"size": [1080, 1920], "counts": "..."}
+}
+```
+
+Every `mask_rle` preserves the original frame dimensions in `size` as `[height, width]`. `counts` is a comma-separated string of column-major run lengths beginning with the background run. Person masks are produced by prompting SAM 2 with Layer 7 person boxes, while the recorded `person_id` is matched to the existing pose/tracking record. `area_ratio` is segmented person pixels divided by total frame pixels. Foreground is the union of prompted SAM 2 object masks, and background is its exact complement. SegFormer semantic labels provide sky and ground masks; ground includes labels such as road, earth, floor, grass, field, sand, dirt, and ground.
+
+SAM 2 is pinned as an official Git dependency in `pyproject.toml` and `uv.lock`. Its Hugging Face weights download on first use. The implementation also supports an official local checkpoint/config through `POROTTA_SAM2_CHECKPOINT` and `POROTTA_SAM2_CONFIG`. The predictor loads on CPU by default to avoid GPU memory contention. SegFormer uses `nvidia/segformer-b0-finetuned-ade-512-512` through Transformers.
+
 ## LLM interpretation rules
 
 - Use the CSV header to determine the order of every JSON-array value.
@@ -291,3 +317,4 @@ The YOLO confidence threshold is `0.20` and the StrongSORT confidence threshold 
 - Chippi is the single layer orchestrator so future analysis modules can be added without changing the interface flow.
 - Layer 6 is lazy-loaded so the app can start without loading YOLO11 and StrongSORT models until pose analysis is reached.
 - Layer 7 uses its own YOLO11 model and StrongSORT tracker so object IDs cannot be confused with person IDs from Layer 6.
+- Layer 8 uses SAM 2 for prompted precise masks and SegFormer for semantic sky/ground labels because those are different segmentation responsibilities.

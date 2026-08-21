@@ -6,12 +6,14 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "boxmot>=22.0.0",
-    "gradio>=6.24.0",
     "ffmpeg-python",
-    "librosa>=1.0.0",
-    "sarvamai>=0.1.28",
+    "gradio>=6.24.0",
     "insightface>=1.0.1",
+    "librosa>=1.0.0",
     "opencv-python-headless>=5.0.0.93",
+    "sarvamai>=0.1.28",
+    "sam-2 @ git+https://github.com/facebookresearch/sam2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4",
+    "transformers>=4.45.0",
     "ultralytics>=8.4.125",
 ]
 

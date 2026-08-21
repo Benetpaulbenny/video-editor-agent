@@ -178,6 +178,10 @@ YOLO11 object detection records every supported object class, bounding box, norm
 
 The YOLO object confidence threshold is `0.20`. StrongSORT uses a stricter `0.70` confidence threshold. If StrongSORT cannot return a track for a valid current-frame detection, the detection is still recorded with a local fallback ID so it is not silently lost.
 
+### Layer 8 — Segmentation
+
+Layer 8 combines SAM 2 and SegFormer. SAM 2 receives the Layer 7 object boxes as prompts and produces precise person/object masks. SegFormer supplies semantic sky and ground masks. Foreground is the union of SAM 2 object masks, and background is its complement. Every mask is stored as a named `mask_rle` object containing the original `[height, width]` and a comma-separated column-major `counts` string. Person records reuse the existing pose/tracking `person_id` and include `area_ratio`.
+
 ## Design decisions
 
 - JSON arrays are used inside grouped CSV cells so nested measurements stay together while the CSV remains easy to inspect.
@@ -197,4 +201,9 @@ The YOLO object confidence threshold is `0.20`. StrongSORT uses a stricter `0.70
 - Layer 7 keeps all YOLO-supported classes instead of restricting the detector to a small manually selected category list.
 - Layer 7 uses separate YOLO (`0.20`) and StrongSORT (`0.70`) confidence thresholds so detector recall and tracker strictness can be tuned independently.
 - Layer 7 records unmatched YOLO detections with local fallback IDs when StrongSORT cannot confirm a track on a sparse one-second sample.
+- SAM 2 is pinned as an official Git dependency so a fresh uv environment has the required implementation. Its Hugging Face weights are downloaded on first use, or a local checkpoint/config can be supplied through `POROTTA_SAM2_CHECKPOINT` and `POROTTA_SAM2_CONFIG`.
+- SAM 2 loads on CPU by default because the application processes the existing InsightFace and YOLO stack on CPU and should not fail from GPU memory contention.
+- SAM 2 is prompted with Layer 7 boxes so its precise masks stay aligned with the object IDs already recorded in the same frame.
+- SegFormer is used for sky and ground because SAM 2 segments prompted regions but does not assign semantic region labels by itself.
+- Masks use run-length encoding instead of raw per-pixel boolean arrays to keep CSV cells manageable.
 - InsightFace and ONNX Runtime startup logs are suppressed so the terminal shows major application output while real errors remain visible.
