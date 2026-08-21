@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "achu.json",
+  "title": "Porotta Frame Analysis Record",
+  "description": "Machine-readable schema for one parsed frame-analysis row.",
+  "type": "object",
+  "required": [
+    "frame_number",
+    "image_quality",
+    "color_analysis",
+    "face_detection"
+  ],
+  "properties": {
+    "frame_number": {
+      "description": "[serial number, exact frame number, timestamp in seconds]",
+      "prefixItems": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "integer", "minimum": 1 },
+        { "type": "number", "minimum": 0 }
+      ],
+      "minItems": 3,
+      "maxItems": 3,
+      "type": "array"
+    },
+    "image_quality": {
+      "description": "[mean brightness, global contrast, blur score, noise score]",
+      "prefixItems": [
+        { "type": "number", "minimum": 0, "maximum": 255 },
+        { "type": "number", "minimum": 0 },
+        { "type": "number", "minimum": 0, "maximum": 1 },
+        { "type": "number", "minimum": 0, "maximum": 1 }
+      ],
+      "minItems": 4,
+      "maxItems": 4,
+      "type": "array"
+    },
+    "color_analysis": {
+      "description": "[color temperature, dominant colors, average RGB, saturation]",
+      "prefixItems": [
+        {
+          "description": "[Kelvin, classification]",
+          "prefixItems": [
+            { "type": "integer", "minimum": 1000, "maximum": 12000 },
+            { "enum": ["cool", "neutral", "warm"] }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "type": "array"
+        },
+        {
+          "description": "[[r, g, b, percentage], ...]",
+          "items": {
+            "prefixItems": [
+              { "type": "integer", "minimum": 0, "maximum": 255 },
+              { "type": "integer", "minimum": 0, "maximum": 255 },
+              { "type": "integer", "minimum": 0, "maximum": 255 },
+              { "type": "number", "minimum": 0, "maximum": 1 }
+            ],
+            "minItems": 4,
+            "maxItems": 4,
+            "type": "array"
+          },
+          "type": "array"
+        },
+        {
+          "description": "[red, green, blue]",
+          "prefixItems": [
+            { "type": "number", "minimum": 0, "maximum": 255 },
+            { "type": "number", "minimum": 0, "maximum": 255 },
+            { "type": "number", "minimum": 0, "maximum": 255 }
+          ],
+          "minItems": 3,
+          "maxItems": 3,
+          "type": "array"
+        },
+        {
+          "description": "[mean, median, low saturation ratio, high saturation ratio]",
+          "prefixItems": [
+            { "type": "number", "minimum": 0, "maximum": 1 },
+            { "type": "number", "minimum": 0, "maximum": 1 },
+            { "type": "number", "minimum": 0, "maximum": 1 },
+            { "type": "number", "minimum": 0, "maximum": 1 }
+          ],
+          "minItems": 4,
+          "maxItems": 4,
+          "type": "array"
+        }
+      ],
+      "minItems": 4,
+      "maxItems": 4,
+      "type": "array"
+    },
+    "face_detection": {
+      "description": "[[face id, bounding box, confidence, embedding vector], ...]",
+      "items": {
+        "prefixItems": [
+          { "type": "string" },
+          {
+            "description": "[x1, y1, x2, y2]",
+            "prefixItems": [
+              { "type": "number" },
+              { "type": "number" },
+              { "type": "number" },
+              { "type": "number" }
+            ],
+            "minItems": 4,
+            "maxItems": 4,
+            "type": "array"
+          },
+          { "type": "number", "minimum": 0, "maximum": 1 },
+          {
+            "description": "ArcFace embedding vector",
+            "items": { "type": "number" },
+            "type": "array"
+          }
+        ],
+        "minItems": 4,
+        "maxItems": 4,
+        "type": "array"
+      },
+      "type": "array"
+    },
+    "future_features": {
+      "description": "Reserved CSV columns currently represented by 0.",
+      "properties": {
+        "face_landmark": { "const": 0 },
+        "head_pose": { "const": 0 },
+        "pose_estimation": { "const": 0 },
+        "object_detection": { "const": 0 },
+        "segmentation": { "const": 0 },
+        "ocr": { "const": 0 },
+        "scene_classification": { "const": 0 },
+        "camera_analysis": { "const": 0 }
+      },
+      "type": "object"
+    }
+  },
+  "csv_columns": [
+    "Frame_number[S.No, Frame number, Timestamp]",
+    "Image_quality[Brightness, Contrast, Blur score, Noise]",
+    "Color_analysis[Color temp[kelvin, classification], Dominant colors[r, g, b, percentage], Avg RGB[r, g, b], Saturation[mean, median, low_saturation_ratio, high_saturation_ratio]]",
+    "Face detection[face_id, bbox[x1, y1, x2, y2], confidence, embedding[vector]]",
+    "Face landmark",
+    "Head pose",
+    "Pose estimation",
+    "Object detection",
+    "Segmentation",
+    "OCR",
+    "Scene classification",
+    "Camera analysis"
+  ]
+}
