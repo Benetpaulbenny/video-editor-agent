@@ -1,7 +1,17 @@
+import logging
+import os
 import shutil
 import subprocess
 import tempfile
+import warnings
+from html import escape
 from pathlib import Path
+
+os.environ.setdefault("ORT_LOG_SEVERITY_LEVEL", "3")
+os.environ.setdefault("ORT_DISABLE_TELEMETRY", "1")
+warnings.filterwarnings("ignore", category=FutureWarning, module=r"insightface(\.|$)")
+logging.getLogger("insightface").setLevel(logging.ERROR)
+logging.getLogger("onnxruntime").setLevel(logging.ERROR)
 
 import gradio as gr
 
@@ -70,16 +80,37 @@ class PorottaApp:
                 next_button = gr.Button("Next", variant="primary")
             with gr.Column(visible=False) as next_page:
                 gr.Markdown("# Video Data")
-                status = gr.Textbox(label="Analysis status", interactive=False)
+                status = gr.HTML()
                 csv_tables = gr.HTML()
             videos.change(self.video_manager.save_videos, inputs=videos, outputs=[result, thumbnails])
             next_button.click(self._open_next_page, inputs=videos, outputs=[home_page, next_page, status, csv_tables])
         return interface
 
     def _open_next_page(self, videos: list[str] | None):
-        yield gr.update(visible=False), gr.update(visible=True), "Preparing CSV files", self.csv_manager.render(videos)
+        yield gr.update(visible=False), gr.update(visible=True), self._status_markup("Preparing CSV files"), self.csv_manager.render(videos)
         for status, tables in self.chippi.run(videos):
-            yield gr.update(visible=False), gr.update(visible=True), status, tables
+            yield gr.update(visible=False), gr.update(visible=True), self._status_markup(status), tables
+
+    def _status_markup(self, message: str) -> str:
+        complete = message.startswith("Analysis complete")
+        state = "complete" if complete else "processing"
+        icon = "✓" if complete else ""
+        return f"""
+<style>
+.porotta-status{{align-items:center;border-radius:12px;display:flex;font-size:16px;gap:12px;margin:8px 0;padding:14px 18px}}
+.porotta-status.processing{{background:#fff7ed;color:#9a3412}}
+.porotta-status.complete{{animation:porotta-complete 1.2s ease-out;background:#f0fdf4;color:#166534}}
+.porotta-icon{{align-items:center;border-radius:50%;display:flex;font-weight:700;height:22px;justify-content:center;width:22px}}
+.processing .porotta-icon{{animation:porotta-pulse 1.1s infinite;background:#f97316}}
+.complete .porotta-icon{{background:#22c55e;color:white}}
+@keyframes porotta-pulse{{0%,100%{{box-shadow:0 0 0 0 #fdba74;opacity:.65}}50%{{box-shadow:0 0 0 8px #fed7aa;opacity:1}}}}
+@keyframes porotta-complete{{0%{{transform:scale(.98);opacity:.5}}100%{{transform:scale(1);opacity:1}}}}
+</style>
+<div class="porotta-status {state}">
+<span class="porotta-icon">{icon}</span>
+<span>{escape(message)}</span>
+</div>
+"""
 
     def launch(self) -> None:
         self.build().launch()

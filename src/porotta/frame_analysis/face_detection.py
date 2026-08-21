@@ -1,3 +1,5 @@
+import contextlib
+import io
 from pathlib import Path
 
 import cv2
@@ -26,9 +28,10 @@ class FaceDetection:
 
     def _get_analyzer(self):
         if self._analyzer is None:
-            self._analyzer = insightface.app.FaceAnalysis(
-                name="buffalo_l",
-                providers=["CPUExecutionProvider"],
-            )
-            self._analyzer.prepare(ctx_id=0, det_size=(640, 640))
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                self._analyzer = insightface.app.FaceAnalysis(
+                    name="buffalo_l",
+                    providers=["CPUExecutionProvider"],
+                )
+                self._analyzer.prepare(ctx_id=0, det_size=(640, 640))
         return self._analyzer

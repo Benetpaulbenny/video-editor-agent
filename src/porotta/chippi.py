@@ -21,6 +21,7 @@ class Chippi:
         for video in videos:
             self.csv_manager.reset(video)
         yield "Frame analysis started", self.csv_manager.render(videos)
+        processed_frames = 0
         for video in videos:
             for serial_number, sample in enumerate(self.frame_number.execute(Path(video)), start=1):
                 quality = self.image_quality.execute(sample.frame_path)
@@ -35,4 +36,6 @@ class Chippi:
                 ]
                 row.extend([0] * (len(self.csv_manager.columns) - len(row)))
                 self.csv_manager.append_row(video, row)
+                processed_frames += 1
                 yield f"Processed frame {sample.frame_number} from {Path(video).name}", self.csv_manager.render(videos)
+        yield f"Analysis complete — {processed_frames} frame(s) analyzed", self.csv_manager.render(videos)

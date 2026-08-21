@@ -138,3 +138,4 @@ InsightFace with `buffalo_l` provides RetinaFace detection, bounding boxes, conf
 - Blur and noise normalization references are provisional and can be calibrated against real footage later.
 - InsightFace was selected instead of Haar Cascade, dlib, YOLO, or DeepFace because RetinaFace plus ArcFace matches the required face detection and identity-representation responsibilities.
 - Embeddings are stored directly in the CSV as JSON arrays so each video CSV is self-contained and easy for the agent to read.
+- InsightFace and ONNX Runtime startup logs are suppressed so the terminal shows major application output while real errors remain visible.
