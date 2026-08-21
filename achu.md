@@ -82,7 +82,7 @@ Every CSV has 12 top-level columns. Grouped headers describe the order of values
 5. Face landmark[face_id, eyes[left, right], nose, jaw, mouth, normalized[eyes[left, right], nose, jaw, mouth], landmark_confidence[detector confidence]]
 6. Head pose[face_id, yaw, pitch, roll, confidence]
 7. Pose estimation[person_id, confidence, keypoints[17x[x, y, confidence]], hands[left[x, y, confidence], right[x, y, confidence]], body_orientation[rotation, direction], movement[moving, direction, speed]]
-8. Object detection
+8. Object detection[object_id, class, bbox[x1, y1, x2, y2], bbox_normalized[x1, y1, x2, y2], confidence, size[width, height, area_ratio]]
 9. Segmentation
 10. OCR
 11. Scene classification
@@ -191,7 +191,7 @@ If no face is detected, the Face Detection cell is an empty list:
 
 ### Future columns
 
-Object detection, Segmentation, OCR, Scene classification, and Camera analysis are reserved for future layers. Their current row values are `0` placeholders and must not be interpreted as measured results.
+Segmentation, OCR, Scene classification, and Camera analysis are reserved for future layers. Their current row values are `0` placeholders and must not be interpreted as measured results.
 
 ### Face Landmarks
 
@@ -251,6 +251,25 @@ StrongSORT provides the temporal person ID. Movement is calculated between the o
 
 The tracker uses a one-observation confirmation threshold so a detected person can be recorded immediately. If no person is detected in a sampled frame, the Pose Estimation cell is `[]`.
 
+### Object Detection
+
+Tools: YOLO11 object detection and StrongSORT.
+
+The value order for the cell is:
+
+```json
+[
+  [object_id, class, bbox, bbox_normalized, confidence, size],
+  ...
+]
+```
+
+`bbox` is `[x1, y1, x2, y2]` in pixels. `bbox_normalized` uses the same order with each coordinate divided by frame width or height and clamped to `[0, 1]`. `size` is `[width, height, area_ratio]`, where `area_ratio` is the bounding-box area divided by the frame area. YOLO-supported classes are retained; the required examples such as `person`, `vehicle`, `building`, `tree`, `phone`, and `sign` are not an exclusive filter.
+
+StrongSORT provides `object_id` across the sampled frames. A frame with no tracked objects stores `[]`. This layer records detections only and does not decide object importance, activity, scene meaning, or editing actions.
+
+The YOLO confidence threshold is `0.20` and the StrongSORT confidence threshold is `0.70`. If StrongSORT does not return a track for a current-frame YOLO detection, the detection is retained with a local fallback ID. Fallback IDs are unique within each frame and are matched to recent same-class boxes when overlap is sufficient.
+
 ## LLM interpretation rules
 
 - Use the CSV header to determine the order of every JSON-array value.
@@ -259,6 +278,7 @@ The tracker uses a one-observation confirmation threshold so a detected person c
 - Treat Layer 1 and Layer 2 as objective measurements, not editing instructions.
 - Treat face embeddings as numerical similarity representations, not names or personal identities.
 - Treat `face_id` as frame-local. Treat `person_id` as persistent only within the current video analysis run because it comes from StrongSORT.
+- Treat `object_id` as persistent only within the current video analysis run because it comes from the separate object StrongSORT tracker.
 - Use the timestamp and frame number to locate the original sampled frame.
 - Expect one CSV per video and process rows in order.
 - The latest row may appear while analysis is still running; do not assume the CSV is complete until processing finishes.
@@ -270,3 +290,4 @@ The tracker uses a one-observation confirmation threshold so a detected person c
 - Processing is serial so every layer sees the same frame and realtime updates remain ordered.
 - Chippi is the single layer orchestrator so future analysis modules can be added without changing the interface flow.
 - Layer 6 is lazy-loaded so the app can start without loading YOLO11 and StrongSORT models until pose analysis is reached.
+- Layer 7 uses its own YOLO11 model and StrongSORT tracker so object IDs cannot be confused with person IDs from Layer 6.

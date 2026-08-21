@@ -14,7 +14,7 @@ class CsvManager:
             "Face landmark[face_id, eyes[left, right], nose, jaw, mouth, normalized[eyes[left, right], nose, jaw, mouth], landmark_confidence[detector confidence]]",
             "Head pose[face_id, yaw, pitch, roll, confidence]",
             "Pose estimation[person_id, confidence, keypoints[17x[x, y, confidence]], hands[left[x, y, confidence], right[x, y, confidence]], body_orientation[rotation, direction], movement[moving, direction, speed]]",
-            "Object detection",
+            "Object detection[object_id, class, bbox[x1, y1, x2, y2], bbox_normalized[x1, y1, x2, y2], confidence, size[width, height, area_ratio]]",
             "Segmentation",
             "OCR",
             "Scene classification",

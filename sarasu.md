@@ -172,6 +172,12 @@ InsightFace's 3D landmark geometry is used with geometric pose solving to calcul
 
 YOLO11 Pose detects people and supplies body keypoints with coordinates and confidence. StrongSORT maintains person IDs between sampled frames. Body orientation and movement are derived from those outputs. The layer does not infer emotion, identity by name, or editing decisions.
 
+### Layer 7 — Object Detection
+
+YOLO11 object detection records every supported object class, bounding box, normalized bounding box, confidence, and size. A separate StrongSORT tracker assigns object IDs across sampled frames. Object detection does not decide whether an object is important, what a person is doing, or what editing action should follow.
+
+The YOLO object confidence threshold is `0.20`. StrongSORT uses a stricter `0.70` confidence threshold. If StrongSORT cannot return a track for a valid current-frame detection, the detection is still recorded with a local fallback ID so it is not silently lost.
+
 ## Design decisions
 
 - JSON arrays are used inside grouped CSV cells so nested measurements stay together while the CSV remains easy to inspect.
@@ -187,4 +193,8 @@ YOLO11 Pose detects people and supplies body keypoints with coordinates and conf
 - Layer 6 uses YOLO11 Pose for body structure and StrongSORT for temporal identity because a single frame cannot reliably provide movement direction.
 - Layer 6 is evaluated on the existing one-frame-per-second stream so every layer remains serial and receives the same frame.
 - StrongSORT confirms a track after one observation because the output is sampled once per second and delaying confirmation would hide early valid detections.
+- Layer 7 uses a separate StrongSORT tracker from Layer 6 so person and object identities remain independent.
+- Layer 7 keeps all YOLO-supported classes instead of restricting the detector to a small manually selected category list.
+- Layer 7 uses separate YOLO (`0.20`) and StrongSORT (`0.70`) confidence thresholds so detector recall and tracker strictness can be tuned independently.
+- Layer 7 records unmatched YOLO detections with local fallback IDs when StrongSORT cannot confirm a track on a sparse one-second sample.
 - InsightFace and ONNX Runtime startup logs are suppressed so the terminal shows major application output while real errors remain visible.

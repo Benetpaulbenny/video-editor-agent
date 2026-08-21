@@ -11,7 +11,8 @@
     "face_detection",
     "face_landmark",
     "head_pose",
-    "pose_estimation"
+    "pose_estimation",
+    "object_detection"
   ],
   "properties": {
     "frame_number": {
@@ -242,10 +243,58 @@
       },
       "type": "array"
     },
+    "object_detection": {
+      "description": "[[object id, class, bounding box, normalized bounding box, confidence, size], ...]",
+      "items": {
+        "prefixItems": [
+          { "type": "string" },
+          { "type": "string" },
+          {
+            "description": "[x1, y1, x2, y2] in pixels",
+            "prefixItems": [
+              { "type": "number" },
+              { "type": "number" },
+              { "type": "number" },
+              { "type": "number" }
+            ],
+            "minItems": 4,
+            "maxItems": 4,
+            "type": "array"
+          },
+          {
+            "description": "[x1, y1, x2, y2] normalized to frame dimensions",
+            "prefixItems": [
+              { "type": "number", "minimum": 0, "maximum": 1 },
+              { "type": "number", "minimum": 0, "maximum": 1 },
+              { "type": "number", "minimum": 0, "maximum": 1 },
+              { "type": "number", "minimum": 0, "maximum": 1 }
+            ],
+            "minItems": 4,
+            "maxItems": 4,
+            "type": "array"
+          },
+          { "type": "number", "minimum": 0, "maximum": 1 },
+          {
+            "description": "[width, height, area ratio]",
+            "prefixItems": [
+              { "type": "number", "minimum": 0 },
+              { "type": "number", "minimum": 0 },
+              { "type": "number", "minimum": 0, "maximum": 1 }
+            ],
+            "minItems": 3,
+            "maxItems": 3,
+            "type": "array"
+          }
+        ],
+        "minItems": 6,
+        "maxItems": 6,
+        "type": "array"
+      },
+      "type": "array"
+    },
     "future_features": {
       "description": "Reserved CSV columns currently represented by 0.",
       "properties": {
-        "object_detection": { "const": 0 },
         "segmentation": { "const": 0 },
         "ocr": { "const": 0 },
         "scene_classification": { "const": 0 },
@@ -262,7 +311,7 @@
     "Face landmark[face_id, eyes[left, right], nose, jaw, mouth, normalized[eyes[left, right], nose, jaw, mouth], landmark_confidence[detector confidence]]",
     "Head pose[face_id, yaw, pitch, roll, confidence]",
     "Pose estimation[person_id, confidence, keypoints[17x[x, y, confidence]], hands[left[x, y, confidence], right[x, y, confidence]], body_orientation[rotation, direction], movement[moving, direction, speed]]",
-    "Object detection",
+    "Object detection[object_id, class, bbox[x1, y1, x2, y2], bbox_normalized[x1, y1, x2, y2], confidence, size[width, height, area_ratio]]",
     "Segmentation",
     "OCR",
     "Scene classification",
