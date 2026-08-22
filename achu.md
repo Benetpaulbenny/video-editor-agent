@@ -232,7 +232,26 @@ The value is a JSON object containing the top five scene predictions:
 }
 ```
 
-The running pipeline writes five predictions. `label` and `confidence` come from Places365. `category` is deterministic `indoor` or `outdoor` metadata derived from the top label and is not a separate model prediction. This layer records environment classification only; Camera analysis remains the only reserved column represented by `0`.
+The running pipeline writes five predictions. `label` and `confidence` come from Places365. `category` is deterministic `indoor` or `outdoor` metadata derived from the top label and is not a separate model prediction. This layer records environment classification only; all twelve CSV columns are now active.
+
+### Camera Analysis
+
+Tool: OpenCV.
+
+The value is a JSON object:
+
+```json
+{
+  "camera_analysis": {
+    "camera_angle": {"horizontal": "front", "vertical": "eye_level"},
+    "camera_motion": {"type": "pan", "confidence": 0.87},
+    "stability": {"score": 0.72, "classification": "moderately_stable"},
+    "motion": {"translation_x": 3.2, "translation_y": -1.4, "rotation": 0.8, "scale_change": 0.03}
+  }
+}
+```
+
+Shi-Tomasi features, Lucas-Kanade optical flow, and RANSAC affine estimation compare each sampled frame with the immediately previous sampled frame. `motion` contains the measured transform. `camera_motion` and `stability` are derived from that transform. The current camera angle is an estimated `front` and `eye_level` default because reliable physical camera angle requires calibration or depth information. The first frame of each video has zero motion and establishes the reference state.
 
 ### Face Landmarks
 

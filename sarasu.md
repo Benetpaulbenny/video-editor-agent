@@ -190,6 +190,10 @@ Layer 9 uses PaddleOCR PP-OCRv5 server models to detect and recognize visible te
 
 Layer 10 uses the Places365 ResNet18 scene-classification model. It preserves the top five environment labels and their softmax confidence for every sampled frame, then derives a deterministic `indoor` or `outdoor` category from the top label. Places365 was selected because this layer measures scene or environment type rather than asking an LLM to interpret the frame. It does not decide what people are doing, whether a shot is useful, or what edit should be made.
 
+### Layer 11 — Camera Analysis
+
+Layer 11 uses OpenCV Shi-Tomasi feature detection, Lucas-Kanade optical flow, and RANSAC affine estimation between consecutive sampled frames. It records estimated translation, rotation, scale change, movement type, and a derived stability score. The first sampled frame establishes the reference and is recorded as static with zero motion. Camera angle is currently an explicit estimated default of front and eye-level because arbitrary footage does not provide enough calibration or depth information for reliable physical-angle inference. Motion and stability thresholds are initial V1 heuristics and should be calibrated against representative footage later.
+
 ## Design decisions
 
 - JSON arrays are used inside grouped CSV cells so nested measurements stay together while the CSV remains easy to inspect.
@@ -219,4 +223,6 @@ Layer 10 uses the Places365 ResNet18 scene-classification model. It preserves th
 - Places365 is loaded lazily and runs on the CPU so startup does not download its model before analysis begins.
 - The top five Places365 predictions are retained because visually similar environments can be ambiguous.
 - The broad indoor/outdoor category is deterministic metadata derived from the top Places365 label, not an additional model confidence.
+- Layer 11 compares consecutive sampled frames serially so camera motion is measured on the same one-frame-per-second stream used by every other layer.
+- OpenCV-derived motion is kept separate from object and body movement so downstream analysis can compare the signals.
 - InsightFace and ONNX Runtime startup logs are suppressed so the terminal shows major application output while real errors remain visible.

@@ -15,7 +15,8 @@
     "object_detection",
     "segmentation",
     "ocr",
-    "scene_classification"
+    "scene_classification",
+    "camera_analysis"
   ],
   "properties": {
     "frame_number": {
@@ -401,11 +402,54 @@
       },
       "additionalProperties": false
     },
+    "camera_analysis": {
+      "type": "object",
+      "required": ["camera_angle", "camera_motion", "stability", "motion"],
+      "properties": {
+        "camera_angle": {
+          "type": "object",
+          "required": ["horizontal", "vertical"],
+          "properties": {
+            "horizontal": { "enum": ["front", "left", "right", "rear"] },
+            "vertical": { "enum": ["eye_level", "low_angle", "high_angle", "top_down"] }
+          },
+          "additionalProperties": false
+        },
+        "camera_motion": {
+          "type": "object",
+          "required": ["type", "confidence"],
+          "properties": {
+            "type": { "enum": ["static", "pan", "tilt", "zoom", "dolly", "tracking", "handheld", "unknown"] },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "stability": {
+          "type": "object",
+          "required": ["score", "classification"],
+          "properties": {
+            "score": { "type": "number", "minimum": 0, "maximum": 1 },
+            "classification": { "enum": ["stable", "moderately_stable", "unstable"] }
+          },
+          "additionalProperties": false
+        },
+        "motion": {
+          "type": "object",
+          "required": ["translation_x", "translation_y", "rotation", "scale_change"],
+          "properties": {
+            "translation_x": { "type": "number" },
+            "translation_y": { "type": "number" },
+            "rotation": { "type": "number" },
+            "scale_change": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "future_features": {
       "description": "Reserved CSV columns currently represented by 0.",
-      "properties": {
-        "camera_analysis": { "const": 0 }
-      },
+      "properties": {},
       "type": "object"
     }
   },
@@ -421,7 +465,7 @@
     "Segmentation[persons[person_id, mask_rle[size[h, w], counts], area_ratio], foreground_mask[mask_rle[size[h, w], counts]], background_mask[mask_rle[size[h, w], counts]], sky_mask[mask_rle[size[h, w], counts]], ground_mask[mask_rle[size[h, w], counts]]]",
     "OCR[texts[text, language[optional], polygon[[x, y]], bbox[x1, y1, x2, y2], confidence, area_ratio]]",
     "Scene classification[category, top_class[label, confidence], predictions[label, confidence]]",
-    "Camera analysis"
+    "Camera analysis[camera_angle[horizontal, vertical], camera_motion[type, confidence], stability[score, classification], motion[translation_x, translation_y, rotation, scale_change]]"
   ],
   "$defs": {
     "mask_rle": {

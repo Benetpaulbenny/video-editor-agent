@@ -18,7 +18,7 @@ class CsvManager:
             "Segmentation[persons[person_id, mask_rle[size[h, w], counts], area_ratio], foreground_mask[mask_rle[size[h, w], counts]], background_mask[mask_rle[size[h, w], counts]], sky_mask[mask_rle[size[h, w], counts]], ground_mask[mask_rle[size[h, w], counts]]]",
             "OCR[texts[text, language[optional], polygon[[x, y]], bbox[x1, y1, x2, y2], confidence, area_ratio]]",
             "Scene classification[category, top_class[label, confidence], predictions[label, confidence]]",
-            "Camera analysis",
+            "Camera analysis[camera_angle[horizontal, vertical], camera_motion[type, confidence], stability[score, classification], motion[translation_x, translation_y, rotation, scale_change]]",
         ]
 
     def prepare(self, video_path: str | Path) -> Path:
