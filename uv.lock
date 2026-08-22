@@ -2639,6 +2639,8 @@ dependencies = [
     { name = "paddlepaddle" },
     { name = "sam-2" },
     { name = "sarvamai" },
+    { name = "torch" },
+    { name = "torchvision" },
     { name = "transformers" },
     { name = "ultralytics" },
 ]
@@ -2655,6 +2657,8 @@ requires-dist = [
     { name = "paddlepaddle", specifier = ">=3.0.0" },
     { name = "sam-2", git = "https://github.com/facebookresearch/sam2.git?rev=2b90b9f5ceec907a1c18123530e92e794ad901a4" },
     { name = "sarvamai", specifier = ">=0.1.28" },
+    { name = "torch", specifier = ">=2.0.0" },
+    { name = "torchvision", specifier = ">=0.15.0" },
     { name = "transformers", specifier = ">=4.45.0" },
     { name = "ultralytics", specifier = ">=8.4.125" },
 ]

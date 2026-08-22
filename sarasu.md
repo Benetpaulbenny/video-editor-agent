@@ -186,6 +186,10 @@ Layer 8 combines SAM 2 and SegFormer. SAM 2 receives the Layer 7 object boxes as
 
 Layer 9 uses PaddleOCR PP-OCRv5 server models to detect and recognize visible text. Each detected text record stores the exact recognized text, polygon, bounding box, OCR confidence, and bounding-region area ratio. Recognition results are filtered at `0.5` confidence to reduce obvious false positives. Language is stored only when PaddleOCR supplies it; the configured English model is not treated as language detection. This layer records objective text data and does not interpret meaning, importance, subtitles, logos, or editing decisions.
 
+### Layer 10 — Scene Classification
+
+Layer 10 uses the Places365 ResNet18 scene-classification model. It preserves the top five environment labels and their softmax confidence for every sampled frame, then derives a deterministic `indoor` or `outdoor` category from the top label. Places365 was selected because this layer measures scene or environment type rather than asking an LLM to interpret the frame. It does not decide what people are doing, whether a shot is useful, or what edit should be made.
+
 ## Design decisions
 
 - JSON arrays are used inside grouped CSV cells so nested measurements stay together while the CSV remains easy to inspect.
@@ -212,4 +216,7 @@ Layer 9 uses PaddleOCR PP-OCRv5 server models to detect and recognize visible te
 - Masks use run-length encoding instead of raw per-pixel boolean arrays to keep CSV cells manageable.
 - PaddleOCR is used for both text detection and recognition because Layer 9 records objective text regions before any semantic interpretation layer.
 - OCR polygons are retained instead of reducing text regions to bounding boxes alone.
+- Places365 is loaded lazily and runs on the CPU so startup does not download its model before analysis begins.
+- The top five Places365 predictions are retained because visually similar environments can be ambiguous.
+- The broad indoor/outdoor category is deterministic metadata derived from the top Places365 label, not an additional model confidence.
 - InsightFace and ONNX Runtime startup logs are suppressed so the terminal shows major application output while real errors remain visible.

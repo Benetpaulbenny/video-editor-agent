@@ -213,7 +213,26 @@ The value is a JSON object:
 
 `text`, polygon, bounding box, confidence, and area ratio are objective PaddleOCR outputs. Recognition results use a `0.5` score threshold to reduce obvious low-confidence false positives. `language` is included only if the configured PaddleOCR result provides a detected language; the configured English model is not treated as language detection. `area_ratio` is the rectangular OCR bounding-region area divided by the full frame area. An image without detected text produces `{"ocr":{"texts":[]}}`.
 
-Scene classification and Camera analysis remain reserved columns represented by `0`.
+### Scene Classification
+
+Tool: Places365 ResNet18.
+
+The value is a JSON object containing the top five scene predictions:
+
+```json
+{
+  "scene_classification": {
+    "category": "outdoor",
+    "top_class": {"label": "street", "confidence": 0.91},
+    "predictions": [
+      {"label": "street", "confidence": 0.91},
+      {"label": "road", "confidence": 0.04}
+    ]
+  }
+}
+```
+
+The running pipeline writes five predictions. `label` and `confidence` come from Places365. `category` is deterministic `indoor` or `outdoor` metadata derived from the top label and is not a separate model prediction. This layer records environment classification only; Camera analysis remains the only reserved column represented by `0`.
 
 ### Face Landmarks
 

@@ -12,6 +12,7 @@ from .frame_analysis.object_detection import ObjectDetection
 from .frame_analysis.pose_estimation import PoseEstimation
 from .frame_analysis.segmentation import Segmentation
 from .frame_analysis.ocr import OCR
+from .frame_analysis.scene_classification import SceneClassification
 
 
 class Chippi:
@@ -27,6 +28,7 @@ class Chippi:
         self.object_detection = ObjectDetection()
         self.segmentation = Segmentation()
         self.ocr = OCR()
+        self.scene_classification = SceneClassification()
 
     def run(self, videos: list[str] | None):
         videos = videos or []
@@ -49,6 +51,7 @@ class Chippi:
                 objects = self.object_detection.execute(frame, sample.timestamp)
                 segmentation = self.segmentation.execute(frame, objects, body_pose)
                 ocr_data = self.ocr.execute(frame)
+                scene_data = self.scene_classification.execute(frame)
                 frame_data = [serial_number, sample.frame_number, sample.timestamp]
                 row = [
                     json.dumps(frame_data, separators=(",", ":")),
@@ -61,6 +64,7 @@ class Chippi:
                     json.dumps(objects, separators=(",", ":")),
                     json.dumps(segmentation, separators=(",", ":")),
                     json.dumps(ocr_data, separators=(",", ":")),
+                    json.dumps(scene_data, separators=(",", ":")),
                 ]
                 row.extend([0] * (len(self.csv_manager.columns) - len(row)))
                 self.csv_manager.append_row(video, row)
