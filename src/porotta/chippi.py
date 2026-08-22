@@ -11,6 +11,7 @@ from .frame_analysis.image_quality import ImageQuality
 from .frame_analysis.object_detection import ObjectDetection
 from .frame_analysis.pose_estimation import PoseEstimation
 from .frame_analysis.segmentation import Segmentation
+from .frame_analysis.ocr import OCR
 
 
 class Chippi:
@@ -25,6 +26,7 @@ class Chippi:
         self.pose_estimation = PoseEstimation()
         self.object_detection = ObjectDetection()
         self.segmentation = Segmentation()
+        self.ocr = OCR()
 
     def run(self, videos: list[str] | None):
         videos = videos or []
@@ -46,6 +48,7 @@ class Chippi:
                 body_pose = self.pose_estimation.execute(frame, sample.timestamp)
                 objects = self.object_detection.execute(frame, sample.timestamp)
                 segmentation = self.segmentation.execute(frame, objects, body_pose)
+                ocr_data = self.ocr.execute(frame)
                 frame_data = [serial_number, sample.frame_number, sample.timestamp]
                 row = [
                     json.dumps(frame_data, separators=(",", ":")),
@@ -57,6 +60,7 @@ class Chippi:
                     json.dumps(body_pose, separators=(",", ":")),
                     json.dumps(objects, separators=(",", ":")),
                     json.dumps(segmentation, separators=(",", ":")),
+                    json.dumps(ocr_data, separators=(",", ":")),
                 ]
                 row.extend([0] * (len(self.csv_manager.columns) - len(row)))
                 self.csv_manager.append_row(video, row)

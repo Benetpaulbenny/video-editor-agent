@@ -13,7 +13,8 @@
     "head_pose",
     "pose_estimation",
     "object_detection",
-    "segmentation"
+    "segmentation",
+    "ocr"
   ],
   "properties": {
     "frame_number": {
@@ -323,10 +324,54 @@
       },
       "additionalProperties": false
     },
+    "ocr": {
+      "type": "object",
+      "required": ["texts"],
+      "properties": {
+        "texts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["text", "polygon", "bbox", "confidence", "area_ratio"],
+            "properties": {
+              "text": { "type": "string" },
+              "language": { "type": "string" },
+              "polygon": {
+                "type": "array",
+                "items": {
+                  "prefixItems": [
+                    { "type": "number", "minimum": 0 },
+                    { "type": "number", "minimum": 0 }
+                  ],
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "type": "array"
+                },
+                "minItems": 3
+              },
+              "bbox": {
+                "type": "object",
+                "required": ["x1", "y1", "x2", "y2"],
+                "properties": {
+                  "x1": { "type": "number", "minimum": 0 },
+                  "y1": { "type": "number", "minimum": 0 },
+                  "x2": { "type": "number", "minimum": 0 },
+                  "y2": { "type": "number", "minimum": 0 }
+                },
+                "additionalProperties": false
+              },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+              "area_ratio": { "type": "number", "minimum": 0, "maximum": 1 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "future_features": {
       "description": "Reserved CSV columns currently represented by 0.",
       "properties": {
-        "ocr": { "const": 0 },
         "scene_classification": { "const": 0 },
         "camera_analysis": { "const": 0 }
       },
@@ -343,7 +388,7 @@
     "Pose estimation[person_id, confidence, keypoints[17x[x, y, confidence]], hands[left[x, y, confidence], right[x, y, confidence]], body_orientation[rotation, direction], movement[moving, direction, speed]]",
     "Object detection[object_id, class, bbox[x1, y1, x2, y2], bbox_normalized[x1, y1, x2, y2], confidence, size[width, height, area_ratio]]",
     "Segmentation[persons[person_id, mask_rle[size[h, w], counts], area_ratio], foreground_mask[mask_rle[size[h, w], counts]], background_mask[mask_rle[size[h, w], counts]], sky_mask[mask_rle[size[h, w], counts]], ground_mask[mask_rle[size[h, w], counts]]]",
-    "OCR",
+    "OCR[texts[text, language[optional], polygon[[x, y]], bbox[x1, y1, x2, y2], confidence, area_ratio]]",
     "Scene classification",
     "Camera analysis"
   ],

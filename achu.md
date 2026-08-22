@@ -189,9 +189,31 @@ If no face is detected, the Face Detection cell is an empty list:
 []
 ```
 
-### Future columns
+### OCR
 
-OCR, Scene classification, and Camera analysis are reserved for future layers. Their current row values are `0` placeholders and must not be interpreted as measured results.
+Tool: PaddleOCR.
+
+The value is a JSON object:
+
+```json
+{
+  "ocr": {
+    "texts": [
+      {
+        "text": "SUBSCRIBE NOW",
+        "polygon": [[420, 180], [810, 178], [812, 245], [421, 247]],
+        "bbox": {"x1": 420, "y1": 178, "x2": 812, "y2": 247},
+        "confidence": 0.97,
+        "area_ratio": 0.012
+      }
+    ]
+  }
+}
+```
+
+`text`, polygon, bounding box, confidence, and area ratio are objective PaddleOCR outputs. Recognition results use a `0.5` score threshold to reduce obvious low-confidence false positives. `language` is included only if the configured PaddleOCR result provides a detected language; the configured English model is not treated as language detection. `area_ratio` is the rectangular OCR bounding-region area divided by the full frame area. An image without detected text produces `{"ocr":{"texts":[]}}`.
+
+Scene classification and Camera analysis remain reserved columns represented by `0`.
 
 ### Face Landmarks
 

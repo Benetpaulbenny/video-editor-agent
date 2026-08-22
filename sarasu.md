@@ -182,6 +182,10 @@ The YOLO object confidence threshold is `0.20`. StrongSORT uses a stricter `0.70
 
 Layer 8 combines SAM 2 and SegFormer. SAM 2 receives the Layer 7 object boxes as prompts and produces precise person/object masks. SegFormer supplies semantic sky and ground masks. Foreground is the union of SAM 2 object masks, and background is its complement. Every mask is stored as a named `mask_rle` object containing the original `[height, width]` and a comma-separated column-major `counts` string. Person records reuse the existing pose/tracking `person_id` and include `area_ratio`.
 
+### Layer 9 — OCR
+
+Layer 9 uses PaddleOCR PP-OCRv5 server models to detect and recognize visible text. Each detected text record stores the exact recognized text, polygon, bounding box, OCR confidence, and bounding-region area ratio. Recognition results are filtered at `0.5` confidence to reduce obvious false positives. Language is stored only when PaddleOCR supplies it; the configured English model is not treated as language detection. This layer records objective text data and does not interpret meaning, importance, subtitles, logos, or editing decisions.
+
 ## Design decisions
 
 - JSON arrays are used inside grouped CSV cells so nested measurements stay together while the CSV remains easy to inspect.
@@ -206,4 +210,6 @@ Layer 8 combines SAM 2 and SegFormer. SAM 2 receives the Layer 7 object boxes as
 - SAM 2 is prompted with Layer 7 boxes so its precise masks stay aligned with the object IDs already recorded in the same frame.
 - SegFormer is used for sky and ground because SAM 2 segments prompted regions but does not assign semantic region labels by itself.
 - Masks use run-length encoding instead of raw per-pixel boolean arrays to keep CSV cells manageable.
+- PaddleOCR is used for both text detection and recognition because Layer 9 records objective text regions before any semantic interpretation layer.
+- OCR polygons are retained instead of reducing text regions to bounding boxes alone.
 - InsightFace and ONNX Runtime startup logs are suppressed so the terminal shows major application output while real errors remain visible.

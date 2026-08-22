@@ -16,7 +16,7 @@ class CsvManager:
             "Pose estimation[person_id, confidence, keypoints[17x[x, y, confidence]], hands[left[x, y, confidence], right[x, y, confidence]], body_orientation[rotation, direction], movement[moving, direction, speed]]",
             "Object detection[object_id, class, bbox[x1, y1, x2, y2], bbox_normalized[x1, y1, x2, y2], confidence, size[width, height, area_ratio]]",
             "Segmentation[persons[person_id, mask_rle[size[h, w], counts], area_ratio], foreground_mask[mask_rle[size[h, w], counts]], background_mask[mask_rle[size[h, w], counts]], sky_mask[mask_rle[size[h, w], counts]], ground_mask[mask_rle[size[h, w], counts]]]",
-            "OCR",
+            "OCR[texts[text, language[optional], polygon[[x, y]], bbox[x1, y1, x2, y2], confidence, area_ratio]]",
             "Scene classification",
             "Camera analysis",
         ]
