@@ -29,7 +29,7 @@ class Converter:
 
         self.output_path = None
 
-    def ConvertVideoToAudio(self, output_path: str) -> "Converter":
+    def VideoToAudio(self, output_path: str) -> "Converter":
         
         out_path = Path(output_path)
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -42,3 +42,4 @@ class Converter:
         print(f"Extracting audio")
         ffmpeg.run(stream, quiet=False)
         print("Done.")
+        return self

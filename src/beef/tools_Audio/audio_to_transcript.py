@@ -54,3 +54,5 @@ class GenerateTranscript:
                 writer.writerow([spk, f"{entry['start_time_seconds']:.2f}", f"{entry['end_time_seconds']:.2f}", entry["transcript"]])
 
         print(f"\nSaved diarized transcript to {csv_path}")
+        
+        return self
