@@ -47,9 +47,15 @@ Run the implemented layers on the same frame
 Write one CSV row and update the UI
     ↓
 Continue to the next frame, then the next video
+    ↓
+Show the Clip Analysis button after CSV completion
+    ↓
+Open the Clip Analysis page
 ```
 
 Serial execution was selected so every layer receives the exact same frame before processing moves forward. The generator-based Chippi pipeline yields after every frame, which enables realtime UI and CSV updates.
+
+After all submitted videos finish, the Video Data page reveals a `Next: Clip Analysis` button. It opens a separate Clip Analysis page that is currently a placeholder for the next feature set. The button stays hidden while CSV analysis is running so the page transition cannot happen before CSV work is complete.
 
 FFmpeg and ffprobe are used for the current frame extraction implementation because they support many video formats and provide reliable frame metadata. They can be optimized later without changing the layer interface.
 

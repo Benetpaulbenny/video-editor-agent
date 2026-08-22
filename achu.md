@@ -68,7 +68,7 @@ Only one frame is active at a time. Every active layer receives the same extract
 
 `ffprobe` reads frame metadata and `ffmpeg` extracts one frame per second. `Chippi` is the internal orchestrator called by `app.py`; it is not a separate command.
 
-The pipeline is generator-based. After each frame is analyzed and written, Chippi yields an update, so the CSV table and analysis status appear in the UI immediately.
+The pipeline is generator-based. After each frame is analyzed and written, Chippi yields an update, so the CSV table and analysis status appear in the UI immediately. When all submitted videos finish, the Video Data page reveals a `Next: Clip Analysis` button. That button opens a separate Clip Analysis page. The page is currently an intentional placeholder; its analysis behavior will be defined in the next specification.
 
 ## CSV structure
 
